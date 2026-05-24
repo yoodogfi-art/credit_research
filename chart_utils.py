@@ -8,36 +8,82 @@ import streamlit as st
 
 from assets.styles import DEEP_GREEN, PLOTLY_TEMPLATE
 
-# High-resolution export config — applied to every plotly_chart call
+# ---------------------------------------------------------------------------
+# Export config — sized for 8 charts per A4 page
+#
+# Strategy: small base dimensions (640×390) so the chart occupies roughly
+# 1/8 of an A4 when inserted into Word/PPT at its natural size.
+# scale=3 gives 1920×1170 px — enough resolution for crisp print without
+# the fonts becoming illegible at the final small print size.
+#
+# Font sizes are deliberately large relative to the canvas so they stay
+# readable when the image is placed at ~95×68 mm on paper.
+# ---------------------------------------------------------------------------
 PLOTLY_CONFIG = dict(
     toImageButtonOptions=dict(
         format="png",
         filename="chart",
-        scale=4,
-        width=1600,
-        height=900,
+        scale=3,          # 640*3 = 1920 px wide — sharp at small print size
+        width=640,        # ~95 mm at 170 dpi; fits 2-up on A4
+        height=390,       # ~68 mm; fits 4-down on A4  (2×4 = 8 per page)
     ),
     displayModeBar=True,
     modeBarButtonsToRemove=["select2d", "lasso2d"],
 )
+
+# Text colors — use near-black so nothing fades at small size
+_TICK_COLOR   = "#1A1A1A"   # axis tick labels
+_LABEL_COLOR  = "#1A1A1A"   # axis titles
+_TITLE_COLOR  = DEEP_GREEN  # chart title (already dark green)
+_LEGEND_COLOR = "#1A1A1A"
 
 
 def base_layout(fig: go.Figure, title: str = "", height: int = 420) -> go.Figure:
     fig.update_layout(
         template=PLOTLY_TEMPLATE,
         height=height,
-        title=dict(text=f"<b>{title}</b>", font=dict(color=DEEP_GREEN, size=13), x=0),
-        font=dict(family="Apple SD Gothic Neo, Noto Sans KR, sans-serif", size=12),
-        legend=dict(
-            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-            font=dict(size=11), bgcolor="rgba(255,255,255,0.85)",
-            bordercolor="#E0E0E0", borderwidth=1,
+        title=dict(
+            text=f"<b>{title}</b>",
+            font=dict(color=_TITLE_COLOR, size=14, family="Apple SD Gothic Neo, Noto Sans KR, sans-serif"),
+            x=0,
         ),
-        margin=dict(l=65, r=75, t=52, b=44),
-        plot_bgcolor="white", paper_bgcolor="white", hovermode="x unified",
+        font=dict(
+            family="Apple SD Gothic Neo, Noto Sans KR, sans-serif",
+            size=13,        # base font — governs legend & hover text
+            color=_LEGEND_COLOR,
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(size=12, color=_LEGEND_COLOR),
+            bgcolor="rgba(255,255,255,0.90)",
+            bordercolor="#C8C8C8",
+            borderwidth=1,
+        ),
+        # Tighter margins so the data area takes more of the small canvas
+        margin=dict(l=58, r=64, t=46, b=40),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        hovermode="x unified",
     )
-    fig.update_xaxes(showgrid=False, showline=True, linecolor="#BDBDBD", linewidth=1.5, tickfont=dict(size=11))
-    fig.update_yaxes(showgrid=True, gridcolor="#EEEEEE", gridwidth=1, tickfont=dict(size=11))
+    fig.update_xaxes(
+        showgrid=False,
+        showline=True,
+        linecolor="#AAAAAA",
+        linewidth=1.5,
+        tickfont=dict(size=12, color=_TICK_COLOR),
+        title_font=dict(size=12, color=_LABEL_COLOR),
+    )
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor="#E2E2E2",
+        gridwidth=1,
+        tickfont=dict(size=12, color=_TICK_COLOR),
+        title_font=dict(size=12, color=_LABEL_COLOR),
+    )
     return fig
 
 
